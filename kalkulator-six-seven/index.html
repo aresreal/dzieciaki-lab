@@ -128,6 +128,20 @@
     .sound-toggle:hover, .sound-toggle:focus-visible { background: #ffe18a; }
     .sound-toggle[aria-pressed="false"] { background: #eee8f4; color: #756a91; }
 
+    .sound-test {
+      border: 0;
+      border-radius: 12px;
+      padding: 9px 10px;
+      color: var(--ink);
+      background: #dff9f3;
+      font: inherit;
+      font-size: .84rem;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .sound-test:hover, .sound-test:focus-visible { background: #bdeee3; }
+
     .screen-wrap { padding: 0 19px 16px; }
 
     .expression {
@@ -223,6 +237,7 @@
         <div class="brand"><span class="brand-bubble" aria-hidden="true">7</span> Kalkulator</div>
         <div>
           <button class="sound-toggle" id="soundToggle" type="button" aria-pressed="true">🔊 Dźwięk</button>
+          <button class="sound-test" id="soundTest" type="button">▶ Test</button>
           <button class="history-toggle" id="historyToggle" type="button" aria-expanded="false" aria-controls="history">🧠 Wyniki</button>
         </div>
       </div>
@@ -276,6 +291,7 @@
       const historyList = document.getElementById('historyList');
       const historyToggle = document.getElementById('historyToggle');
       const soundToggle = document.getElementById('soundToggle');
+      const soundTest = document.getElementById('soundTest');
       let current = '0';
       let firstValue = null;
       let operator = null;
@@ -289,30 +305,32 @@
         const AudioContextClass = window.AudioContext || window.webkitAudioContext;
         if (!AudioContextClass) return;
         audioContext ||= new AudioContextClass();
-        if (audioContext.state === 'suspended') audioContext.resume();
 
         const notes = {
-          number: [[520, .055, 'triangle', 0]],
-          operator: [[320, .06, 'sine', 0], [430, .07, 'sine', .045]],
-          equal: [[523, .07, 'triangle', 0], [659, .07, 'triangle', .075], [784, .13, 'triangle', .15]],
-          clear: [[250, .06, 'square', 0]],
-          error: [[190, .12, 'sawtooth', 0], [150, .14, 'sawtooth', .1]],
-          magic: [[660, .06, 'sine', 0], [880, .11, 'sine', .06]]
+          number: [[520, .1, 'triangle', 0]],
+          operator: [[320, .1, 'sine', 0], [430, .12, 'sine', .07]],
+          equal: [[523, .12, 'triangle', 0], [659, .12, 'triangle', .12], [784, .2, 'triangle', .24]],
+          clear: [[250, .1, 'square', 0]],
+          error: [[190, .15, 'sawtooth', 0], [150, .17, 'sawtooth', .13]],
+          magic: [[660, .1, 'sine', 0], [880, .18, 'sine', .1]]
         }[kind] || [];
 
-        notes.forEach(([frequency, duration, type, delay]) => {
+        const schedule = () => notes.forEach(([frequency, duration, type, delay]) => {
           const now = audioContext.currentTime + delay;
           const oscillator = audioContext.createOscillator();
           const gain = audioContext.createGain();
           oscillator.type = type;
           oscillator.frequency.setValueAtTime(frequency, now);
           gain.gain.setValueAtTime(.0001, now);
-          gain.gain.exponentialRampToValueAtTime(.055, now + .01);
+          gain.gain.exponentialRampToValueAtTime(.13, now + .012);
           gain.gain.exponentialRampToValueAtTime(.0001, now + duration);
           oscillator.connect(gain).connect(audioContext.destination);
           oscillator.start(now);
-          oscillator.stop(now + duration + .02);
+          oscillator.stop(now + duration + .03);
         });
+
+        if (audioContext.state === 'running') schedule();
+        else audioContext.resume().then(schedule).catch(() => {});
       }
 
       function sayMeme(text, { rate = 1.15, pitch = 1.35, lang = 'pl-PL' } = {}) {
@@ -429,6 +447,12 @@
         soundToggle.setAttribute('aria-pressed', soundOn);
         soundToggle.textContent = soundOn ? '🔊 Dźwięk' : '🔇 Cisza';
         if (soundOn) playSound('magic');
+      });
+      soundTest.addEventListener('click', () => {
+        soundOn = true;
+        soundToggle.setAttribute('aria-pressed', 'true');
+        soundToggle.textContent = '🔊 Dźwięk';
+        playSound('equal');
       });
       document.getElementById('clearHistory').addEventListener('click', () => { historyItems = []; renderHistory(); });
 
