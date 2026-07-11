@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#7055f6" />
+  <title>Małe Zabawy</title>
+  <style>
+    :root { --ink: #30235d; --violet: #7055f6; --pink: #ff70aa; --yellow: #ffd85c; --mint: #6bdfc8; }
+    * { box-sizing: border-box; }
+    body {
+      min-height: 100vh; margin: 0; padding: 32px 18px; color: var(--ink);
+      font-family: "Trebuchet MS", "Arial Rounded MT Bold", system-ui, sans-serif;
+      background: radial-gradient(circle at 10% 15%, #ffe283 0 75px, transparent 76px), radial-gradient(circle at 88% 20%, #98f1df 0 95px, transparent 96px), linear-gradient(135deg, #f1ebff, #eafaff 60%, #fff0bd);
+    }
+    main { width: min(100%, 900px); margin: 0 auto; }
+    .hero { text-align: center; padding: 38px 0 28px; }
+    .eyebrow { margin: 0 0 10px; color: var(--violet); font-size: .9rem; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; }
+    h1 { margin: 0; font-size: clamp(2.5rem, 9vw, 5rem); letter-spacing: -.065em; line-height: .95; }
+    .hero p { max-width: 540px; margin: 18px auto 0; font-size: 1.1rem; font-weight: 700; }
+    .projects { display: grid; grid-template-columns: repeat(auto-fit, minmax(245px, 1fr)); gap: 18px; }
+    .project { min-height: 230px; display: flex; flex-direction: column; justify-content: space-between; padding: 23px; border: 4px solid var(--ink); border-radius: 28px; color: inherit; background: #fff; box-shadow: 8px 9px 0 rgba(48, 35, 93, .17); text-decoration: none; transition: transform .15s ease, box-shadow .15s ease; }
+    .project:hover, .project:focus-visible { transform: translate(-3px, -4px); box-shadow: 13px 14px 0 rgba(48, 35, 93, .17); outline: 4px solid var(--mint); outline-offset: 3px; }
+    .icon { width: 64px; height: 64px; display: grid; place-items: center; border: 3px solid var(--ink); border-radius: 20px; background: var(--yellow); font-size: 2.1rem; box-shadow: 4px 4px 0 var(--ink); }
+    h2 { margin: 24px 0 7px; font-size: 1.45rem; }
+    .project p { margin: 0; font-weight: 700; }
+    .go { margin-top: 18px; color: var(--violet); font-weight: 900; }
+    .future { border-style: dashed; background: rgba(255,255,255,.55); opacity: .82; }
+    .future .icon { background: var(--pink); }
+    footer { padding: 28px 0 6px; font-size: .9rem; font-weight: 700; text-align: center; }
+  </style>
+</head>
+<body>
+  <main>
+    <header class="hero">
+      <p class="eyebrow">Miniapki dla dzieciaków</p>
+      <h1>Małe Zabawy ✨</h1>
+      <p>Kolorowe gry, pomysły i narzędzia do klikania, liczenia oraz dobrej zabawy.</p>
+    </header>
+
+    <section class="projects" aria-label="Dostępne miniapki">
+      <a class="project" href="kalkulator-six-seven/" aria-label="Otwórz Kalkulator Six Seven">
+        <span class="icon" aria-hidden="true">➗</span>
+        <div>
+          <h2>Kalkulator Six Seven</h2>
+          <p>Kolorowy kalkulator z dźwiękami i memowymi niespodziankami.</p>
+        </div>
+        <span class="go">Otwórz zabawę →</span>
+      </a>
+
+      <article class="project future" aria-label="Miejsce na kolejną miniapkę">
+        <span class="icon" aria-hidden="true">🎲</span>
+        <div>
+          <h2>Kolejna zabawa</h2>
+          <p>Tu wkrótce pojawi się następny projekt.</p>
+        </div>
+        <span class="go">Już niedługo!</span>
+      </article>
+    </section>
+
+    <footer>Tworzymy i testujemy razem 💜</footer>
+  </main>
+</body>
+</html>

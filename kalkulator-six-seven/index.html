@@ -1,0 +1,461 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#7357ff" />
+  <title>Kalkulator Six Seven</title>
+  <style>
+    :root {
+      --ink: #2e2158;
+      --purple: #7357ff;
+      --purple-dark: #5238d9;
+      --pink: #ff6ca8;
+      --yellow: #ffd75a;
+      --mint: #64dfc8;
+      --panel: #fffaff;
+      --line: #eadffd;
+      --shadow: 0 18px 0 rgba(72, 45, 151, .12), 0 24px 42px rgba(63, 29, 122, .18);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      display: grid;
+      place-items: center;
+      padding: 28px 16px;
+      color: var(--ink);
+      font-family: "Trebuchet MS", "Arial Rounded MT Bold", system-ui, sans-serif;
+      background:
+        radial-gradient(circle at 12% 18%, rgba(255, 215, 90, .75) 0 54px, transparent 55px),
+        radial-gradient(circle at 88% 10%, rgba(100, 223, 200, .72) 0 70px, transparent 71px),
+        radial-gradient(circle at 86% 85%, rgba(255, 108, 168, .35) 0 95px, transparent 96px),
+        linear-gradient(135deg, #f0eaff, #e6fbff 55%, #fff0b9);
+    }
+
+    .app {
+      width: min(100%, 430px);
+      position: relative;
+    }
+
+    .sticker {
+      position: absolute;
+      z-index: 2;
+      right: -30px;
+      top: -30px;
+      width: 103px;
+      height: 103px;
+      display: grid;
+      place-items: center;
+      rotate: 11deg;
+      border: 4px solid var(--ink);
+      border-radius: 50%;
+      color: #fff;
+      background: var(--pink);
+      box-shadow: 5px 6px 0 var(--ink);
+      font-size: .76rem;
+      font-weight: 900;
+      letter-spacing: .08em;
+      line-height: 1.18;
+      text-align: center;
+    }
+
+    .calculator {
+      overflow: hidden;
+      border: 4px solid var(--ink);
+      border-radius: 32px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 19px 22px 13px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      font-size: 1.1rem;
+      font-weight: 900;
+      letter-spacing: .025em;
+    }
+
+    .brand-bubble {
+      display: grid;
+      place-items: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 12px;
+      color: #fff;
+      background: var(--purple);
+      box-shadow: 3px 3px 0 var(--ink);
+      font-size: 1.1rem;
+    }
+
+    .history-toggle {
+      border: 0;
+      border-radius: 12px;
+      padding: 9px 10px;
+      color: var(--ink);
+      background: #efe8ff;
+      font: inherit;
+      font-size: .84rem;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .history-toggle:hover, .history-toggle:focus-visible { background: #dfd2ff; }
+
+    .sound-toggle {
+      border: 0;
+      border-radius: 12px;
+      padding: 9px 10px;
+      color: var(--ink);
+      background: #fff1bb;
+      font: inherit;
+      font-size: .84rem;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .sound-toggle:hover, .sound-toggle:focus-visible { background: #ffe18a; }
+    .sound-toggle[aria-pressed="false"] { background: #eee8f4; color: #756a91; }
+
+    .screen-wrap { padding: 0 19px 16px; }
+
+    .expression {
+      min-height: 25px;
+      color: #897fa6;
+      font-size: .9rem;
+      font-weight: 700;
+      text-align: right;
+      overflow-wrap: anywhere;
+    }
+
+    .screen {
+      width: 100%;
+      min-height: 73px;
+      display: flex;
+      align-items: end;
+      justify-content: end;
+      overflow: hidden;
+      color: var(--ink);
+      font-size: clamp(2.35rem, 10vw, 3.6rem);
+      font-weight: 900;
+      letter-spacing: -.055em;
+      line-height: 1;
+      text-align: right;
+    }
+
+    .divider { height: 4px; background: var(--ink); }
+
+    .keys {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      padding: 16px 18px 21px;
+    }
+
+    .key {
+      min-height: 58px;
+      border: 3px solid var(--ink);
+      border-radius: 18px;
+      color: var(--ink);
+      background: #fff;
+      box-shadow: 0 4px 0 var(--ink);
+      font: inherit;
+      font-size: 1.25rem;
+      font-weight: 900;
+      cursor: pointer;
+      transition: transform .08s ease, box-shadow .08s ease, background .15s ease;
+    }
+
+    .key:hover { background: #f7f2ff; }
+    .key:active, .key.pressed { transform: translateY(4px); box-shadow: none; }
+    .key:focus-visible, .history-toggle:focus-visible { outline: 4px solid var(--mint); outline-offset: 2px; }
+    .key.utility { background: #ffe9f2; }
+    .key.operator { background: #e5fbf7; }
+    .key.equal { color: #fff; background: var(--purple); }
+    .key.equal:hover { background: var(--purple-dark); }
+
+    .history {
+      display: none;
+      margin: 0 18px 18px;
+      padding: 14px;
+      border: 3px dashed var(--purple);
+      border-radius: 18px;
+      background: #f5f1ff;
+    }
+
+    .history.show { display: block; }
+    .history-title { display: flex; justify-content: space-between; align-items: center; gap: 10px; font-size: .85rem; font-weight: 900; }
+    .clear-history { border: 0; color: var(--purple-dark); background: transparent; font: inherit; font-size: .78rem; font-weight: 800; cursor: pointer; text-decoration: underline; }
+    .history-list { margin: 9px 0 0; padding: 0; list-style: none; }
+    .history-list li { display: flex; justify-content: space-between; gap: 8px; padding: 5px 0; color: #695b91; font-size: .85rem; font-weight: 700; }
+    .history-list li span:last-child { color: var(--ink); }
+
+    .tip {
+      margin: 14px 10px 0;
+      color: #5e4e8c;
+      font-size: .78rem;
+      font-weight: 700;
+      text-align: center;
+    }
+
+    @media (max-width: 460px) {
+      .sticker { right: -4px; top: -47px; width: 83px; height: 83px; font-size: .62rem; }
+      .key { min-height: 53px; border-radius: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <div class="sticker" aria-hidden="true">SIX<br>SEVEN<br>VIBES</div>
+    <section class="calculator" aria-label="Kalkulator Six Seven">
+      <div class="topbar">
+        <div class="brand"><span class="brand-bubble" aria-hidden="true">7</span> Kalkulator</div>
+        <div>
+          <button class="sound-toggle" id="soundToggle" type="button" aria-pressed="true">🔊 Dźwięk</button>
+          <button class="history-toggle" id="historyToggle" type="button" aria-expanded="false" aria-controls="history">🧠 Wyniki</button>
+        </div>
+      </div>
+
+      <div class="screen-wrap">
+        <div class="expression" id="expression" aria-live="polite"></div>
+        <output class="screen" id="display" aria-live="polite">0</output>
+      </div>
+      <div class="divider"></div>
+
+      <div class="keys" aria-label="Przyciski kalkulatora">
+        <button class="key utility" data-action="percent" type="button">%</button>
+        <button class="key utility" data-action="clear-entry" type="button">CE</button>
+        <button class="key utility" data-action="clear" type="button">C</button>
+        <button class="key utility" data-action="backspace" type="button" aria-label="Usuń ostatnią cyfrę">⌫</button>
+        <button class="key operator" data-action="reciprocal" type="button">¹⁄ₓ</button>
+        <button class="key operator" data-action="square" type="button">x²</button>
+        <button class="key operator" data-action="sqrt" type="button">√x</button>
+        <button class="key operator" data-operator="÷" type="button">÷</button>
+        <button class="key" data-number="7" type="button">7</button>
+        <button class="key" data-number="8" type="button">8</button>
+        <button class="key" data-number="9" type="button">9</button>
+        <button class="key operator" data-operator="×" type="button">×</button>
+        <button class="key" data-number="4" type="button">4</button>
+        <button class="key" data-number="5" type="button">5</button>
+        <button class="key" data-number="6" type="button">6</button>
+        <button class="key operator" data-operator="−" type="button">−</button>
+        <button class="key" data-number="1" type="button">1</button>
+        <button class="key" data-number="2" type="button">2</button>
+        <button class="key" data-number="3" type="button">3</button>
+        <button class="key operator" data-operator="+" type="button">+</button>
+        <button class="key" data-action="sign" type="button">±</button>
+        <button class="key" data-number="0" type="button">0</button>
+        <button class="key" data-action="decimal" type="button">,</button>
+        <button class="key equal" data-action="equals" type="button">=</button>
+      </div>
+
+      <aside class="history" id="history" aria-label="Historia obliczeń">
+        <div class="history-title">Ostatnie obliczenia <button class="clear-history" id="clearHistory" type="button">wyczyść</button></div>
+        <ul class="history-list" id="historyList"><li><span>Jeszcze nic!</span><span>✨</span></li></ul>
+      </aside>
+    </section>
+    <p class="tip">Tip: klawiatura też działa. Wciśnij 6, potem 7 — mega vibe! ✨</p>
+  </main>
+
+  <script>
+    (() => {
+      const display = document.getElementById('display');
+      const expression = document.getElementById('expression');
+      const history = document.getElementById('history');
+      const historyList = document.getElementById('historyList');
+      const historyToggle = document.getElementById('historyToggle');
+      const soundToggle = document.getElementById('soundToggle');
+      let current = '0';
+      let firstValue = null;
+      let operator = null;
+      let waitingForNext = false;
+      let historyItems = [];
+      let soundOn = true;
+      let audioContext = null;
+
+      function playSound(kind) {
+        if (!soundOn) return;
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContextClass) return;
+        audioContext ||= new AudioContextClass();
+        if (audioContext.state === 'suspended') audioContext.resume();
+
+        const notes = {
+          number: [[520, .055, 'triangle', 0]],
+          operator: [[320, .06, 'sine', 0], [430, .07, 'sine', .045]],
+          equal: [[523, .07, 'triangle', 0], [659, .07, 'triangle', .075], [784, .13, 'triangle', .15]],
+          clear: [[250, .06, 'square', 0]],
+          error: [[190, .12, 'sawtooth', 0], [150, .14, 'sawtooth', .1]],
+          magic: [[660, .06, 'sine', 0], [880, .11, 'sine', .06]]
+        }[kind] || [];
+
+        notes.forEach(([frequency, duration, type, delay]) => {
+          const now = audioContext.currentTime + delay;
+          const oscillator = audioContext.createOscillator();
+          const gain = audioContext.createGain();
+          oscillator.type = type;
+          oscillator.frequency.setValueAtTime(frequency, now);
+          gain.gain.setValueAtTime(.0001, now);
+          gain.gain.exponentialRampToValueAtTime(.055, now + .01);
+          gain.gain.exponentialRampToValueAtTime(.0001, now + duration);
+          oscillator.connect(gain).connect(audioContext.destination);
+          oscillator.start(now);
+          oscillator.stop(now + duration + .02);
+        });
+      }
+
+      function sayMeme(text, { rate = 1.15, pitch = 1.35, lang = 'pl-PL' } = {}) {
+        if (!soundOn || !('speechSynthesis' in window)) return;
+        window.speechSynthesis.cancel();
+        const line = new SpeechSynthesisUtterance(text);
+        line.lang = lang;
+        line.rate = rate;
+        line.pitch = pitch;
+        line.volume = .85;
+        window.speechSynthesis.speak(line);
+      }
+
+      const format = value => {
+        if (!Number.isFinite(value)) return 'Ups!';
+        const rounded = Math.round((value + Number.EPSILON) * 1e10) / 1e10;
+        return String(rounded).replace('.', ',');
+      };
+      const numeric = () => Number(current.replace(',', '.'));
+      const update = () => { display.textContent = current; };
+      const updateExpression = () => { expression.textContent = operator && firstValue !== null ? `${format(firstValue)} ${operator}` : ''; };
+      const calculate = (a, b, op) => ({ '+': a + b, '−': a - b, '×': a * b, '÷': b === 0 ? NaN : a / b }[op]);
+
+      function inputNumber(number) {
+        if (current === 'Ups!' || waitingForNext) { current = number; waitingForNext = false; }
+        else current = current === '0' ? number : current + number;
+        update();
+      }
+
+      function chooseOperator(nextOperator) {
+        const value = numeric();
+        if (current === 'Ups!') return;
+        if (operator && !waitingForNext) {
+          const result = calculate(firstValue, value, operator);
+          current = format(result);
+          firstValue = result;
+        } else firstValue = value;
+        operator = nextOperator;
+        waitingForNext = true;
+        update(); updateExpression();
+      }
+
+      function equals() {
+        if (!operator || waitingForNext || current === 'Ups!') return;
+        const secondValue = numeric();
+        const result = calculate(firstValue, secondValue, operator);
+        const line = `${format(firstValue)} ${operator} ${format(secondValue)}`;
+        current = format(result);
+        if (current !== 'Ups!') historyItems.unshift({ line, result: current });
+        historyItems = historyItems.slice(0, 6);
+        firstValue = null; operator = null; waitingForNext = true;
+        expression.textContent = line + ' =';
+        update(); renderHistory();
+        if (current === 'Ups!') {
+          playSound('error');
+          sayMeme('Płakał...', { rate: .72, pitch: .72 });
+        } else playSound('equal');
+      }
+
+      function unary(kind) {
+        const value = numeric();
+        if (current === 'Ups!') return;
+        let result = value;
+        if (kind === 'percent') result = value / 100;
+        if (kind === 'reciprocal') result = value === 0 ? NaN : 1 / value;
+        if (kind === 'square') result = value * value;
+        if (kind === 'sqrt') result = value < 0 ? NaN : Math.sqrt(value);
+        current = format(result); waitingForNext = true; update();
+        playSound(current === 'Ups!' ? 'error' : 'magic');
+      }
+
+      function clear(all = true) {
+        current = '0';
+        if (all) { firstValue = null; operator = null; expression.textContent = ''; }
+        waitingForNext = false; update(); updateExpression();
+      }
+
+      function renderHistory() {
+        historyList.innerHTML = historyItems.length
+          ? historyItems.map(item => `<li><span>${item.line}</span><span>= ${item.result}</span></li>`).join('')
+          : '<li><span>Jeszcze nic!</span><span>✨</span></li>';
+      }
+
+      document.querySelector('.keys').addEventListener('click', event => {
+        const button = event.target.closest('button');
+        if (!button) return;
+        const sixSeven = current === '6' && button.dataset.number === '7' && !waitingForNext;
+        if (button.dataset.number) {
+          inputNumber(button.dataset.number);
+          playSound('number');
+          if (sixSeven) sayMeme('Six seven!', { rate: 1.22, pitch: 1.45, lang: 'en-US' });
+        }
+        if (button.dataset.operator) {
+          chooseOperator(button.dataset.operator);
+          playSound('operator');
+          if (button.dataset.operator === '×') sayMeme('I do pieca!', { rate: 1.25, pitch: 1.42 });
+        }
+        const action = button.dataset.action;
+        if (action === 'decimal' && !current.includes(',') && current !== 'Ups!') { current += ','; update(); }
+        if (action === 'equals') equals();
+        if (action === 'clear') { clear(true); playSound('clear'); }
+        if (action === 'clear-entry') { clear(false); playSound('clear'); }
+        if (action === 'backspace' && !waitingForNext) { current = current.length > 1 ? current.slice(0, -1) : '0'; update(); playSound('clear'); }
+        if (action === 'sign' && current !== '0' && current !== 'Ups!') { current = current.startsWith('-') ? current.slice(1) : '-' + current; update(); }
+        if (['percent', 'reciprocal', 'square', 'sqrt'].includes(action)) unary(action);
+      });
+
+      historyToggle.addEventListener('click', () => {
+        const show = history.classList.toggle('show');
+        historyToggle.setAttribute('aria-expanded', show);
+      });
+      soundToggle.addEventListener('click', () => {
+        soundOn = !soundOn;
+        soundToggle.setAttribute('aria-pressed', soundOn);
+        soundToggle.textContent = soundOn ? '🔊 Dźwięk' : '🔇 Cisza';
+        if (soundOn) playSound('magic');
+      });
+      document.getElementById('clearHistory').addEventListener('click', () => { historyItems = []; renderHistory(); });
+
+      window.addEventListener('keydown', event => {
+        const map = { '*': '×', '/': '÷', '-': '−', '+': '+', ',': 'decimal', '.': 'decimal', Enter: 'equals', '=': 'equals', Escape: 'clear', Backspace: 'backspace', '%': 'percent' };
+        const sixSeven = current === '6' && event.key === '7' && !waitingForNext;
+        if (/^\d$/.test(event.key)) {
+          inputNumber(event.key);
+          playSound('number');
+          if (sixSeven) sayMeme('Six seven!', { rate: 1.22, pitch: 1.45, lang: 'en-US' });
+        }
+        else if (['+', '-', '*', '/'].includes(event.key)) {
+          chooseOperator(map[event.key]);
+          playSound('operator');
+          if (event.key === '*') sayMeme('I do pieca!', { rate: 1.25, pitch: 1.42 });
+        }
+        else if (map[event.key]) {
+          event.preventDefault();
+          const action = map[event.key];
+          if (action === 'decimal' && !current.includes(',') && current !== 'Ups!') { current += ','; update(); }
+          else if (action === 'equals') equals();
+          else if (action === 'clear') { clear(true); playSound('clear'); }
+          else if (action === 'backspace' && !waitingForNext) { current = current.length > 1 ? current.slice(0, -1) : '0'; update(); playSound('clear'); }
+          else if (action === 'percent') unary(action);
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
