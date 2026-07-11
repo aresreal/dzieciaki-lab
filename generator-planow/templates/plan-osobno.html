@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<title>Plan na jutro — osobne kartki</title>
+<style>
+  /* ============================================================
+     PLAN NA JUTRO — wariant: osobna kartka dla kazdej corki
+     Druk: A4 pionowo, 2 strony. Ctrl+P -> marginesy: brak/none,
+     zaznacz "Grafika tla" / "Background graphics".
+     ============================================================ */
+
+  @page { size: A4 portrait; margin: 0; }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  body {
+    background: #e8ecf1;
+    font-family: "Segoe UI", "Candara", system-ui, sans-serif;
+    color: #1f2937;
+  }
+
+  /* ---------- Kolory semantyczne (wspolne dla obu kartek) ---------- */
+  :root {
+    --rano:        #EA9A0B;  --rano-soft:    #FEF6E4;
+    --szkola:      #0EA271;  --szkola-soft:  #E9FAF3;
+    --wieczor:     #5B5BD6;  --wieczor-soft: #EEEEFC;
+    --joy:         #DB2777;  --joy-soft:     #FDF0F6;
+    --line:        #C3CBD6;
+    --muted:       #7B8794;
+  }
+
+  /* ---------- Tozsamosc: kazda dziewczynka ma swoj kolor ---------- */
+  .theme-teal   { --id1: #0F766E; --id2: #22B8A6; --id-soft: #EAF9F6; }
+  .theme-violet { --id1: #6D28D9; --id2: #A855F7; --id-soft: #F5EFFE; }
+
+  /* ================= ARKUSZ ================= */
+  .sheet {
+    width: 210mm;
+    height: 297mm;
+    padding: 10mm 11mm 8mm;
+    background: #fff;
+    margin: 10mm auto;
+    box-shadow: 0 4px 24px rgba(15,23,42,.16);
+    display: flex;
+    flex-direction: column;
+    gap: 3.2mm;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* delikatna dekoracja w rogu */
+  .sheet::after {
+    content: "";
+    position: absolute;
+    right: -18mm; bottom: -18mm;
+    width: 60mm; height: 60mm;
+    border-radius: 50%;
+    background: var(--id-soft);
+    z-index: 0;
+  }
+  .sheet > * { position: relative; z-index: 1; }
+
+  /* ================= NAGLOWEK ================= */
+  .band {
+    background: linear-gradient(120deg, var(--id1), var(--id2));
+    border-radius: 5mm;
+    padding: 4.5mm 6mm;
+    color: #fff;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 6mm;
+  }
+  .kicker {
+    font-size: 8.5pt;
+    font-weight: 600;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+    opacity: .85;
+  }
+  .name {
+    font-family: "Segoe Print", "Bradley Hand ITC", "Comic Sans MS", cursive;
+    font-size: 27pt;
+    line-height: 1.15;
+    margin-top: 1mm;
+  }
+
+  .datebox {
+    background: #fff;
+    color: #334155;
+    border-radius: 3.5mm;
+    padding: 3mm 3.5mm;
+    text-align: center;
+    flex: 0 0 auto;
+  }
+  .datebox .lab {
+    font-size: 7pt;
+    font-weight: 700;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 1.8mm;
+  }
+  .days { display: flex; gap: 1.4mm; }
+  .day {
+    width: 7.6mm; height: 7.6mm;
+    border: 1.5px solid #B9C2CE;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 7.5pt; font-weight: 700; color: #475569;
+  }
+  .datefield {
+    margin-top: 2.4mm;
+    font-size: 8pt;
+    color: var(--muted);
+    letter-spacing: .04em;
+  }
+  .datefield b { color: #334155; letter-spacing: 0; }
+
+  /* ================= NASTROJ ================= */
+  .mood {
+    border: 1.6px solid #E2E7EE;
+    border-radius: 4mm;
+    padding: 2.6mm 4mm 3mm;
+  }
+  .mood-title {
+    font-size: 8pt; font-weight: 700; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--muted);
+    text-align: center; margin-bottom: 1.6mm;
+  }
+  .faces { display: flex; justify-content: space-around; }
+  .face { text-align: center; }
+  .face svg { width: 11mm; height: 11mm; display: block; margin: 0 auto; }
+  .face span {
+    display: block; margin-top: .8mm;
+    font-size: 7.5pt; font-weight: 600; color: #64748B;
+  }
+
+  /* ================= BLOKI PORY DNIA ================= */
+  .block {
+    border: 1.8px solid var(--c);
+    border-radius: 4mm;
+    overflow: hidden;
+  }
+  .block-head {
+    background: var(--c);
+    color: #fff;
+    padding: 1.8mm 4mm;
+    display: flex;
+    align-items: center;
+    gap: 2.5mm;
+  }
+  .block-head svg { width: 4.6mm; height: 4.6mm; flex: 0 0 auto; }
+  .block-head h2 {
+    font-size: 11pt;
+    font-weight: 700;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+  }
+  .block-head .hint {
+    margin-left: auto;
+    font-size: 7.5pt;
+    font-style: italic;
+    opacity: .9;
+    font-weight: 500;
+  }
+  .block-body { padding: 2.6mm 4mm 2.2mm; background: var(--soft); }
+
+  .line { display: flex; align-items: flex-end; gap: 3.5mm; height: 10.5mm; }
+  .box {
+    width: 6.4mm; height: 6.4mm;
+    border: 2px solid var(--c);
+    border-radius: 1.8mm;
+    background: #fff;
+    margin-bottom: 1.4mm;
+    flex: 0 0 auto;
+  }
+  .rule { flex: 1; border-bottom: 1.5px solid var(--line); height: 100%; }
+
+  /* ================= COS DLA MNIE ================= */
+  .joy {
+    border: 2px dashed var(--joy);
+    border-radius: 4mm;
+    background: var(--joy-soft);
+    padding: 2.6mm 4mm 2.4mm;
+  }
+  .joy-head { display: flex; align-items: center; gap: 2.5mm; color: var(--joy); }
+  .joy-head svg { width: 4.6mm; height: 4.6mm; }
+  .joy-head h2 {
+    font-size: 10.5pt; font-weight: 700;
+    letter-spacing: .12em; text-transform: uppercase;
+  }
+  .joy-head .hint {
+    margin-left: auto; font-size: 7.5pt; font-style: italic;
+    color: #A3477B; font-weight: 500;
+  }
+  .joy .line { height: 10mm; }
+  .joy .rule { border-bottom-color: #E9AECB; }
+
+  /* ================= STOPKA ================= */
+  .foot {
+    margin-top: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2.5mm;
+    color: var(--muted);
+    font-size: 8.5pt;
+  }
+  .foot svg { width: 3.6mm; height: 3.6mm; color: var(--id2); }
+  .foot b { color: #475569; font-weight: 600; }
+
+  /* ================= EKRAN vs DRUK ================= */
+  .tip {
+    max-width: 210mm; margin: 8mm auto -4mm; padding: 4mm 6mm;
+    background: #fff; border-left: 4px solid #0F766E; border-radius: 2mm;
+    font-size: 10pt; line-height: 1.6; color: #334155;
+    box-shadow: 0 2px 10px rgba(15,23,42,.08);
+  }
+  .tip b { color: #0F766E; }
+
+  @media print {
+    body { background: #fff; }
+    .sheet { margin: 0; box-shadow: none; }
+    .sheet + .sheet { page-break-before: always; break-before: page; }
+    .no-print { display: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="tip no-print">
+  <b>Jak wydrukowac:</b> Ctrl+P &rarr; Uklad: <b>pionowy</b> &rarr; Marginesy: <b>Brak</b> &rarr;
+  zaznacz <b>Grafika tla / Background graphics</b> &rarr; Skala: <b>100%</b>.
+  Wyjda 2 kartki A4. Ten niebieski kafelek nie drukuje sie.
+</div>
+
+<!-- =====================================================================
+     SZABLON KARTKI. Zeby zmienic imie: szukaj komentarza ZMIEN IMIE.
+     Zeby zmienic liczbe linii: dodaj/usun <div class="line">...</div>
+     ===================================================================== -->
+
+<!-- ============ KARTKA 1 — starsza (12,5 lat) ============ -->
+<section class="sheet theme-teal">
+
+  <header class="band">
+    <div>
+      <div class="kicker">M&oacute;j plan na jutro</div>
+      <!-- ZMIEN IMIE -->
+      <div class="name">Klara</div>
+    </div>
+    <div class="datebox">
+      <div class="lab">Jaki to dzie&#324;?</div>
+      <div class="days">
+        <div class="day">PN</div><div class="day">WT</div><div class="day">&#346;R</div>
+        <div class="day">CZ</div><div class="day">PT</div><div class="day">SO</div>
+        <div class="day">ND</div>
+      </div>
+      <div class="datefield"><b>Data:</b> &nbsp;____ &nbsp;.&nbsp; ____ &nbsp;.&nbsp; ________</div>
+    </div>
+  </header>
+
+  <section class="mood">
+    <div class="mood-title">Jak si&#281; dzi&#347; czuj&#281;? &nbsp;&middot;&nbsp; zakre&#347;l buzi&#281;</div>
+    <div class="faces">
+      <div class="face" style="color:#16A34A">
+        <svg viewBox="0 0 48 48" fill="none">
+          <circle cx="24" cy="24" r="20" fill="#DCFCE7" stroke="currentColor" stroke-width="2.5"/>
+          <path d="M13.5 20.5Q17 15.5 20.5 20.5M27.5 20.5Q31 15.5 34.5 20.5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
+          <path d="M13 28Q24 41 35 28" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>
+        </svg>
+        <span>Super!</span>
+      </div>
+      <div class="face" style="color:#65A30D">
+        <svg viewBox="0 0 48 48" fill="none">
+          <circle cx="24" cy="24" r="20" fill="#ECFCCB" stroke="currentColor" stroke-width="2.5"/>
+          <circle cx="17" cy="19.5" r="2.3" fill="currentColor"/><circle cx="31" cy="19.5" r="2.3" fill="currentColor"/>
+          <path d="M15 29Q24 37 33 29" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>
+        </svg>
+        <span>Dobrze</span>
+      </div>
+      <div class="face" style="color:#CA8A04">
+        <svg viewBox="0 0 48 48" fill="none">
+          <circle cx="24" cy="24" r="20" fill="#FEF9C3" stroke="currentColor" stroke-width="2.5"/>
+          <circle cx="17" cy="19.5" r="2.3" fill="currentColor"/><circle cx="31" cy="19.5" r="2.3" fill="currentColor"/>
+          <path d="M15.5 31h17" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>
+        </svg>
+        <span>Tak sobie</span>
+      </div>
+      <div class="face" style="color:#EA580C">
+        <svg viewBox="0 0 48 48" fill="none">
+          <circle cx="24" cy="24" r="20" fill="#FFEDD5" stroke="currentColor" stroke-width="2.5"/>
+          <circle cx="17" cy="19.5" r="2.3" fill="currentColor"/><circle cx="31" cy="19.5" r="2.3" fill="currentColor"/>
+          <path d="M15 33Q24 26 33 33" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>
+        </svg>
+        <span>S&#322;abo</span>
+      </div>
+      <div class="face" style="color:#DC2626">
+        <svg viewBox="0 0 48 48" fill="none">
+          <circle cx="24" cy="24" r="20" fill="#FEE2E2" stroke="currentColor" stroke-width="2.5"/>
+          <circle cx="17" cy="19.5" r="2.3" fill="currentColor"/><circle cx="31" cy="19.5" r="2.3" fill="currentColor"/>
+          <path d="M14 34.5Q24 23 34 34.5" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>
+        </svg>
+        <span>Kiepsko</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" style="--c:var(--rano); --soft:var(--rano-soft)">
+    <div class="block-head">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <circle cx="12" cy="12" r="4.4" fill="currentColor" stroke="none"/>
+        <path d="M12 2v2.6M12 19.4V22M2 12h2.6M19.4 12H22M4.9 4.9l1.9 1.9M17.2 17.2l1.9 1.9M19.1 4.9l-1.9 1.9M6.8 17.2l-1.9 1.9"/>
+      </svg>
+      <h2>Rano</h2>
+      <span class="hint">zanim wyjd&#281; z domu</span>
+    </div>
+    <div class="block-body">
+      <div class="line"><div class="box"></div><div class="rule"></div></div>
+      <div class="line"><div class="box"></div><div class="rule"></div></div>
+      <div class="line"><div class="box"></div><div class="rule"></div></div>
+    </div>
+  </section>
+
+  <section class="block" style="--c:var(--szkola); --soft:var(--szkola-soft)">
+    <div class="block-head">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round">
+        <path d="M12 7.2C10.6 5.9 8.6 5.5 3.5 5.5v12.2c5.1 0 7.1.4 8.5 1.7 1.4-1.3 3.4-1.7 8.5-1.7V5.5c-5.1 0-7.1.4-8.5 1.7z"/>
+        <path d="M12 7.2v11.2"/>
+      </svg>
+      <h2>Po szkole</h2>
+      <span class="hint">lekcje &middot; obowi&#261;zki &middot; zaj&#281;cia</span>
+    </div>
+    <div class="block-body">
+      <div class="line"><div class="box"></div><div class="rule"></div></div>
+      <div class="line"><div class="box"></div><div class="rule"></div></div>
+      <div class="line"><div class="box"></div><div class="rule"></div></div>
+      <div class="line"><div class="box"></div><div class="rule"></div></div>
+      <div class="line"><div class="box"></div><div class="rule"></div></div>
+    </div>
+  </section>
+
+  <section class="block" style="--c:var(--wieczor); --soft:var(--wieczor-soft)">
+    <div class="block-head">
+      <svg viewBox="0 0 24 24" fill="currentColor">
+        <path d="M20.5 14.8A8.7 8.7 0 0 1 9.2 3.5a8.8 8.8 0 1 0 11.3 11.3z"/>
+      </svg>
+      <h2>Wieczorem</h2>
+      <span class="hint">plecak &middot; ubranie &middot; sen</span>
+    </div>
+    <div class="block-body">
+      <div class="line"><div class="box"></div><div class="rule"></div></div>
+      <div class="line"><div class="box"></div><div class="rule"></div></div>
+      <div class="line"><div class="box"></div><div class="rule"></div></div>
+    </div>
+  </section>
+
+  <section class="joy">
+    <div class="joy-head">
+      <svg viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 20.4s-7.4-4.8-7.4-10A4.2 4.2 0 0 1 12 7.1a4.2 4.2 0 0 1 7.4 3.3c0 5.2-7.4 10-7.4 10z"/>
+      </svg>
+      <h2>Co&#347; dla mnie</h2>
+      <span class="hint">na co si&#281; jutro ciesz&#281;?</span>
+    </div>
+    <div class="line"><div class="rule"></div></div>
+    <div class="line"><div class="rule"></div></div>
+  </section>
+
+  <footer class="foot">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9z"/></svg>
+    <span>Nie musi by&#263; idealnie. <b>Wystarczy jedna rzecz naraz.</b></span>
+  </footer>
+
+</section>
+
+
+<!-- ============ KARTKA 2 — mlodsza (10 lat) ============ -->
+<section class="sheet theme-violet">
+
+  <header class="band">
+    <div>
+      <div class="kicker">M&oacute;j plan na jutro</div>
+      <!-- ZMIEN IMIE -->
+      <div class="name">Maja</div>
+    </div>
+    <div class="datebox">
+      <div class="lab">Jaki to dzie&#324;?</div>
+      <div class="days">
+        <div class="day">PN</div><div class="day">WT</div><div class="day">&#346;R</div>
+        <div class="day">CZ</div><div class="day">PT</div><div class="day">SO</div>
+        <div class="day">ND</div>
+      </div>
+      <div class="datefield"><b>Data:</b> &nbsp;____ &nbsp;.&nbsp; ____ &nbsp;.&nbsp; ________</div>
+    </div>
+  </header>
+
+  <section class="mood">
+    <div class="mood-title">Jak si&#281; dzi&#347; czuj&#281;? &nbsp;&middot;&nbsp; zakre&#347;l buzi&#281;</div>
+    <div class="faces">
+      <div class="face" style="color:#16A34A">
+        <svg viewBox="0 0 48 48" fill="none">
+          <circle cx="24" cy="24" r="20" fill="#DCFCE7" stroke="currentColor" stroke-width="2.5"/>
+          <path d="M13.5 20.5Q17 15.5 20.5 20.5M27.5 20.5Q31 15.5 34.5 20.5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
+          <path d="M13 28Q24 41 35 28" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>
+        </svg>
+        <span>Super!</span>
+      </div>
+      <div class="face" style="color:#65A30D">
+        <svg viewBox="0 0 48 48" fill="none">
+          <circle cx="24" cy="24" r="20" fill="#ECFCCB" stroke="currentColor" stroke-width="2.5"/>
+          <circle cx="17" cy="19.5" r="2.3" fill="currentColor"/><circle cx="31" cy="19.5" r="2.3" fill="currentColor"/>
+          <path d="M15 29Q24 37 33 29" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>
+        </svg>
+        <span>Dobrze</span>
+      </div>
+      <div class="face" style="color:#CA8A04">
+        <svg viewBox="0 0 48 48" fill="none">
+          <circle cx="24" cy="24" r="20" fill="#FEF9C3" stroke="currentColor" stroke-width="2.5"/>
+          <circle cx="17" cy="19.5" r="2.3" fill="currentColor"/><circle cx="31" cy="19.5" r="2.3" fill="currentColor"/>
+          <path d="M15.5 31h17" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>
+        </svg>
+        <span>Tak sobie</span>
+      </div>
+      <div class="face" style="color:#EA580C">
+        <svg viewBox="0 0 48 48" fill="none">
+          <circle cx="24" cy="24" r="20" fill="#FFEDD5" stroke="currentColor" stroke-width="2.5"/>
+          <circle cx="17" cy="19.5" r="2.3" fill="currentColor"/><circle cx="31" cy="19.5" r="2.3" fill="currentColor"/>
+          <path d="M15 33Q24 26 33 33" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>
+        </svg>
+        <span>S&#322;abo</span>
+      </div>
+      <div class="face" style="color:#DC2626">
+        <svg viewBox="0 0 48 48" fill="none">
+          <circle cx="24" cy="24" r="20" fill="#FEE2E2" stroke="currentColor" stroke-width="2.5"/>
+          <circle cx="17" cy="19.5" r="2.3" fill="currentColor"/><circle cx="31" cy="19.5" r="2.3" fill="currentColor"/>
+          <path d="M14 34.5Q24 23 34 34.5" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>
+        </svg>
+        <span>Kiepsko</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" style="--c:var(--rano); --soft:var(--rano-soft)">
+    <div class="block-head">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <circle cx="12" cy="12" r="4.4" fill="currentColor" stroke="none"/>
+        <path d="M12 2v2.6M12 19.4V22M2 12h2.6M19.4 12H22M4.9 4.9l1.9 1.9M17.2 17.2l1.9 1.9M19.1 4.9l-1.9 1.9M6.8 17.2l-1.9 1.9"/>
+      </svg>
+      <h2>Rano</h2>
+      <span class="hint">zanim wyjd&#281; z domu</span>
+    </div>
+    <div class="block-body">
+      <div class="line"><div class="box"></div><div class="rule"></div></div>
+      <div class="line"><div class="box"></div><div class="rule"></div></div>
+      <div class="line"><div class="box"></div><div class="rule"></div></div>
+    </div>
+  </section>
+
+  <section class="block" style="--c:var(--szkola); --soft:var(--szkola-soft)">
+    <div class="block-head">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round">
+        <path d="M12 7.2C10.6 5.9 8.6 5.5 3.5 5.5v12.2c5.1 0 7.1.4 8.5 1.7 1.4-1.3 3.4-1.7 8.5-1.7V5.5c-5.1 0-7.1.4-8.5 1.7z"/>
+        <path d="M12 7.2v11.2"/>
+      </svg>
+      <h2>Po szkole</h2>
+      <span class="hint">lekcje &middot; obowi&#261;zki &middot; zaj&#281;cia</span>
+    </div>
+    <div class="block-body">
+      <div class="line"><div class="box"></div><div class="rule"></div></div>
+      <div class="line"><div class="box"></div><div class="rule"></div></div>
+      <div class="line"><div class="box"></div><div class="rule"></div></div>
+      <div class="line"><div class="box"></div><div class="rule"></div></div>
+      <div class="line"><div class="box"></div><div class="rule"></div></div>
+    </div>
+  </section>
+
+  <section class="block" style="--c:var(--wieczor); --soft:var(--wieczor-soft)">
+    <div class="block-head">
+      <svg viewBox="0 0 24 24" fill="currentColor">
+        <path d="M20.5 14.8A8.7 8.7 0 0 1 9.2 3.5a8.8 8.8 0 1 0 11.3 11.3z"/>
+      </svg>
+      <h2>Wieczorem</h2>
+      <span class="hint">plecak &middot; ubranie &middot; sen</span>
+    </div>
+    <div class="block-body">
+      <div class="line"><div class="box"></div><div class="rule"></div></div>
+      <div class="line"><div class="box"></div><div class="rule"></div></div>
+      <div class="line"><div class="box"></div><div class="rule"></div></div>
+    </div>
+  </section>
+
+  <section class="joy">
+    <div class="joy-head">
+      <svg viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 20.4s-7.4-4.8-7.4-10A4.2 4.2 0 0 1 12 7.1a4.2 4.2 0 0 1 7.4 3.3c0 5.2-7.4 10-7.4 10z"/>
+      </svg>
+      <h2>Co&#347; dla mnie</h2>
+      <span class="hint">na co si&#281; jutro ciesz&#281;?</span>
+    </div>
+    <div class="line"><div class="rule"></div></div>
+    <div class="line"><div class="rule"></div></div>
+  </section>
+
+  <footer class="foot">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9z"/></svg>
+    <span>Nie musi by&#263; idealnie. <b>Wystarczy jedna rzecz naraz.</b></span>
+  </footer>
+
+</section>
+
+</body>
+</html>

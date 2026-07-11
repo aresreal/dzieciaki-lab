@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<title>Harmonogram obowiązków — Klara</title>
+<style>
+  /* ============================================================
+     HARMONOGRAM STALYCH OBOWIAZKOW — Klara
+     A4 POZIOMO, 1 strona. Ctrl+P -> Uklad: poziomy,
+     Marginesy: Brak, zaznacz "Grafika tla / Background graphics".
+     Obowiazki sa wpisane na stale - Klara odhacza kazdy dzien.
+     ------------------------------------------------------------
+     JAK EDYTOWAC:
+       * zmienic obowiazek -> szukaj tekstu w wierszu <tr>
+       * dodac/usunac obowiazek -> skopiuj/usun caly <tr class="task">
+       * zmienic pore dnia -> naglowek <tr class="group ...">
+     ============================================================ */
+
+  @page { size: A4 landscape; margin: 0; }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  body {
+    background: #e8ecf1;
+    font-family: "Segoe UI", "Candara", system-ui, sans-serif;
+    color: #1f2937;
+  }
+
+  :root {
+    --id1: #0F766E; --id2: #22B8A6; --id-soft: #EAF9F6;   /* turkus Klary */
+    --rano:    #EA9A0B; --rano-soft:    #FEF6E4;
+    --szkola:  #0EA271; --szkola-soft:  #E9FAF3;
+    --wieczor: #5B5BD6; --wieczor-soft: #EEEEFC;
+    --line:    #D3DAE3;
+    --muted:   #7B8794;
+    --wkend:   #FFF6EE;   /* delikatne tlo weekendu */
+  }
+
+  /* ================= ARKUSZ ================= */
+  .sheet {
+    width: 297mm;
+    height: 210mm;
+    padding: 8mm 9mm 6mm;
+    background: #fff;
+    margin: 10mm auto;
+    box-shadow: 0 4px 24px rgba(15,23,42,.16);
+    display: flex;
+    flex-direction: column;
+    gap: 4mm;
+    overflow: hidden;
+  }
+
+  /* ================= NAGLOWEK ================= */
+  .band {
+    background: linear-gradient(120deg, var(--id1), var(--id2));
+    border-radius: 4.5mm;
+    padding: 3.4mm 6mm;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6mm;
+    flex: 0 0 auto;
+  }
+  .band .left { display: flex; align-items: baseline; gap: 5mm; }
+  .kicker {
+    font-size: 8pt; font-weight: 600; letter-spacing: .2em;
+    text-transform: uppercase; opacity: .85;
+  }
+  .name {
+    font-family: "Segoe Print", "Bradley Hand ITC", "Comic Sans MS", cursive;
+    font-size: 24pt; line-height: 1;
+  }
+  .weekof {
+    background: #fff; color: #334155;
+    border-radius: 3mm; padding: 2.4mm 4mm;
+    font-size: 9pt; white-space: nowrap;
+  }
+  .weekof b { color: var(--id1); }
+
+  /* ================= TABELA ================= */
+  table {
+    width: 100%;
+    height: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    table-layout: fixed;
+    flex: 1;
+  }
+
+  col.c-task { width: 66mm; }
+  col.c-wkend { background: var(--wkend); }
+
+  thead th {
+    padding: 1.8mm 1mm;
+    vertical-align: middle;
+  }
+  th.h-task {
+    text-align: left;
+    padding-left: 4mm;
+    font-size: 8pt; font-weight: 700; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--muted);
+  }
+  th.h-day {
+    border-radius: 2.4mm 2.4mm 0 0;
+    color: #fff;
+    background: var(--id1);
+    border-left: 1.5px solid #fff;
+  }
+  th.h-day.wk { background: #D9822B; }
+  th.h-day .dname {
+    font-size: 9.5pt; font-weight: 700; letter-spacing: .06em; display: block;
+  }
+  th.h-day .dshort {
+    font-size: 7pt; font-weight: 500; opacity: .8; letter-spacing: .1em;
+  }
+
+  /* --- naglowek pory dnia (wiersz grupy) --- */
+  tr.group td {
+    padding: 1.6mm 4mm;
+    background: var(--gsoft);
+    border-top: 2px solid var(--g);
+  }
+  tr.group .glabel {
+    display: flex; align-items: center; gap: 2.4mm;
+    color: var(--g); font-weight: 700;
+    font-size: 9.5pt; letter-spacing: .12em; text-transform: uppercase;
+  }
+  tr.group svg { width: 4.4mm; height: 4.4mm; flex: 0 0 auto; }
+
+  /* --- wiersz obowiazku --- */
+  tr.task td {
+    border-bottom: 1px solid var(--line);
+  }
+  td.task-name {
+    padding: 0 4mm;
+    font-size: 10pt;
+    color: #273443;
+    line-height: 1.15;
+  }
+  td.tick {
+    text-align: center;
+    border-left: 1px solid var(--line);
+    vertical-align: middle;
+  }
+  td.tick.wk { background: var(--wkend); }
+  .checkbox {
+    width: 6.6mm; height: 6.6mm;
+    border: 2px solid var(--cb, #B7C0CC);
+    border-radius: 1.8mm;
+    display: inline-block;
+    vertical-align: middle;
+  }
+
+  /* kolor kratki zalezny od pory dnia grupy */
+  tr.task.rano    td.tick .checkbox { --cb: #E9B764; }
+  tr.task.szkola  td.tick .checkbox { --cb: #6FC7A6; }
+  tr.task.wieczor td.tick .checkbox { --cb: #A6A6E4; }
+
+  /* ================= STOPKA ================= */
+  .foot {
+    flex: 0 0 auto;
+    display: flex; align-items: center; justify-content: center; gap: 2.5mm;
+    color: var(--muted); font-size: 9pt;
+  }
+  .foot svg { width: 3.8mm; height: 3.8mm; color: var(--id2); }
+  .foot b { color: #475569; font-weight: 600; }
+
+  /* ================= EKRAN vs DRUK ================= */
+  .tip {
+    max-width: 297mm; margin: 8mm auto -4mm; padding: 4mm 6mm;
+    background: #fff; border-left: 4px solid #0F766E; border-radius: 2mm;
+    font-size: 10pt; line-height: 1.6; color: #334155;
+    box-shadow: 0 2px 10px rgba(15,23,42,.08);
+  }
+  .tip b { color: #0F766E; }
+
+  @media print {
+    body { background: #fff; }
+    .sheet { margin: 0; box-shadow: none; }
+    .no-print { display: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="tip no-print">
+  <b>Jak wydrukowac:</b> Ctrl+P &rarr; Uklad: <b>poziomy / landscape</b> &rarr; Marginesy: <b>Brak</b> &rarr;
+  zaznacz <b>Grafika tla / Background graphics</b> &rarr; Skala: <b>100%</b>. Wyjdzie 1 kartka A4.
+  Ten kafelek nie drukuje sie.
+</div>
+
+<section class="sheet">
+
+  <header class="band">
+    <div class="left">
+      <div>
+        <div class="kicker">Moje codzienne obowi&#261;zki</div>
+        <div class="name">Klara</div>
+      </div>
+    </div>
+    <div class="weekof">Tydzie&#324; od <b>____ . ____</b> do <b>____ . ____</b></div>
+  </header>
+
+  <table>
+    <colgroup>
+      <col class="c-task">
+      <col><col><col><col><col>
+      <col class="c-wkend"><col class="c-wkend">
+    </colgroup>
+
+    <thead>
+      <tr>
+        <th class="h-task">Obowi&#261;zek</th>
+        <th class="h-day"><span class="dname">Pon</span><span class="dshort">poniedzia&#322;ek</span></th>
+        <th class="h-day"><span class="dname">Wt</span><span class="dshort">wtorek</span></th>
+        <th class="h-day"><span class="dname">&#346;r</span><span class="dshort">&#347;roda</span></th>
+        <th class="h-day"><span class="dname">Czw</span><span class="dshort">czwartek</span></th>
+        <th class="h-day"><span class="dname">Pt</span><span class="dshort">pi&#261;tek</span></th>
+        <th class="h-day wk"><span class="dname">Sob</span><span class="dshort">sobota</span></th>
+        <th class="h-day wk"><span class="dname">Nd</span><span class="dshort">niedziela</span></th>
+      </tr>
+    </thead>
+
+    <tbody>
+
+      <!-- ============ RANO ============ -->
+      <tr class="group" style="--g:var(--rano); --gsoft:var(--rano-soft)">
+        <td colspan="8">
+          <span class="glabel">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <circle cx="12" cy="12" r="4.4" fill="currentColor" stroke="none"/>
+              <path d="M12 2v2.6M12 19.4V22M2 12h2.6M19.4 12H22M4.9 4.9l1.9 1.9M17.2 17.2l1.9 1.9M19.1 4.9l-1.9 1.9M6.8 17.2l-1.9 1.9"/>
+            </svg>
+            Rano
+          </span>
+        </td>
+      </tr>
+      <tr class="task rano">
+        <td class="task-name">Po&#347;ciel&#281; &#322;&oacute;&#380;ko</td>
+        <td class="tick"><span class="checkbox"></span></td>
+        <td class="tick"><span class="checkbox"></span></td>
+        <td class="tick"><span class="checkbox"></span></td>
+        <td class="tick"><span class="checkbox"></span></td>
+        <td class="tick"><span class="checkbox"></span></td>
+        <td class="tick wk"><span class="checkbox"></span></td>
+        <td class="tick wk"><span class="checkbox"></span></td>
+      </tr>
+      <tr class="task rano">
+        <td class="task-name">Umyj&#281; z&#281;by i twarz</td>
+        <td class="tick"><span class="checkbox"></span></td>
+        <td class="tick"><span class="checkbox"></span></td>
+        <td class="tick"><span class="checkbox"></span></td>
+        <td class="tick"><span class="checkbox"></span></td>
+        <td class="tick"><span class="checkbox"></span></td>
+        <td class="tick wk"><span class="checkbox"></span></td>
+        <td class="tick wk"><span class="checkbox"></span></td>
+      </tr>
+      <tr class="task rano">
+        <td class="task-name">Ubior&#281; si&#281; i uczesz&#281;</td>
+        <td class="tick"><span class="checkbox"></span></td>
+        <td class="tick"><span class="checkbox"></span></td>
+        <td class="tick"><span class="checkbox"></span></td>
+        <td class="tick"><span class="checkbox"></span></td>
+        <td class="tick"><span class="checkbox"></span></td>
+        <td class="tick wk"><span class="checkbox"></span></td>
+        <td class="tick wk"><span class="checkbox"></span></td>
+      </tr>
+      <tr class="task rano">
+        <td class="task-name">Zjem &#347;niadanie i sprz&#261;tn&#281; po sobie</td>
+        <td class="tick"><span class="checkbox"></span></td>
+        <td class="tick"><span class="checkbox"></span></td>
+        <td class="tick"><span class="checkbox"></span></td>
+        <td class="tick"><span class="checkbox"></span></td>
+        <td class="tick"><span class="checkbox"></span></td>
+        <td class="tick wk"><span class="checkbox"></span></td>
+        <td class="tick wk"><span class="checkbox"></span></td>
+      </tr>
+
+      <!-- ============ PO SZKOLE ============ -->
+      <tr class="group" style="--g:var(--szkola); --gsoft:var(--szkola-soft)">
+        <td colspan="8">
+          <span class="glabel">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round">
+              <path d="M12 7.2C10.6 5.9 8.6 5.5 3.5 5.5v12.2c5.1 0 7.1.4 8.5 1.7 1.4-1.3 3.4-1.7 8.5-1.7V5.5c-5.1 0-7.1.4-8.5 1.7z"/>
+              <path d="M12 7.2v11.2"/>
+            </svg>
+            Po szkole
+          </span>
+        </td>
+      </tr>
+      <tr class="task szkola">
+        <td class="task-name">Odrobi&#281; lekcje</td>
+        <td class="tick"><span class="checkbox"></span></td>
+        <td class="tick"><span class="checkbox"></span></td>
+        <td class="tick"><span class="checkbox"></span></td>
+        <td class="tick"><span class="checkbox"></span></td>
+        <td class="tick"><span class="checkbox"></span></td>
+        <td class="tick wk"><span class="checkbox"></span></td>
+        <td class="tick wk"><span class="checkbox"></span></td>
+      </tr>
+      <tr class="task szkola">
+        <td class="task-name">Spakuj&#281; plecak na jutro</td>
+        <td class="tick"><span class="checkbox"></span></td>
+        <td class="tick"><span class="checkbox"></span></td>
+        <td class="tick"><span class="checkbox"></span></td>
+        <td class="tick"><span class="checkbox"></span></td>
+        <td class="tick"><span class="checkbox"></span></td>
+        <td class="tick wk"><span class="checkbox"></span></td>
+        <td class="tick wk"><span class="checkbox"></span></td>
+      </tr>
+      <tr class="task szkola">
+        <td class="task-name">Posprz&#261;tam sw&oacute;j pok&oacute;j</td>
+        <td class="tick"><span class="checkbox"></span></td>
+        <td class="tick"><span class="checkbox"></span></td>
+        <td class="tick"><span class="checkbox"></span></td>
+        <td class="tick"><span class="checkbox"></span></td>
+        <td class="tick"><span class="checkbox"></span></td>
+        <td class="tick wk"><span class="checkbox"></span></td>
+        <td class="tick wk"><span class="checkbox"></span></td>
+      </tr>
+
+      <!-- ============ WIECZOREM ============ -->
+      <tr class="group" style="--g:var(--wieczor); --gsoft:var(--wieczor-soft)">
+        <td colspan="8">
+          <span class="glabel">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M20.5 14.8A8.7 8.7 0 0 1 9.2 3.5a8.8 8.8 0 1 0 11.3 11.3z"/>
+            </svg>
+            Wieczorem
+          </span>
+        </td>
+      </tr>
+      <tr class="task wieczor">
+        <td class="task-name">Prysznic / k&#261;piel</td>
+        <td class="tick"><span class="checkbox"></span></td>
+        <td class="tick"><span class="checkbox"></span></td>
+        <td class="tick"><span class="checkbox"></span></td>
+        <td class="tick"><span class="checkbox"></span></td>
+        <td class="tick"><span class="checkbox"></span></td>
+        <td class="tick wk"><span class="checkbox"></span></td>
+        <td class="tick wk"><span class="checkbox"></span></td>
+      </tr>
+      <tr class="task wieczor">
+        <td class="task-name">Umyj&#281; z&#281;by</td>
+        <td class="tick"><span class="checkbox"></span></td>
+        <td class="tick"><span class="checkbox"></span></td>
+        <td class="tick"><span class="checkbox"></span></td>
+        <td class="tick"><span class="checkbox"></span></td>
+        <td class="tick"><span class="checkbox"></span></td>
+        <td class="tick wk"><span class="checkbox"></span></td>
+        <td class="tick wk"><span class="checkbox"></span></td>
+      </tr>
+      <tr class="task wieczor">
+        <td class="task-name">Przygotuj&#281; ubrania na jutro</td>
+        <td class="tick"><span class="checkbox"></span></td>
+        <td class="tick"><span class="checkbox"></span></td>
+        <td class="tick"><span class="checkbox"></span></td>
+        <td class="tick"><span class="checkbox"></span></td>
+        <td class="tick"><span class="checkbox"></span></td>
+        <td class="tick wk"><span class="checkbox"></span></td>
+        <td class="tick wk"><span class="checkbox"></span></td>
+      </tr>
+
+    </tbody>
+  </table>
+
+  <footer class="foot">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9z"/></svg>
+    <span>Odhaczam, gdy zrobione. <b>Ka&#380;dy dzie&#324; to nowy start.</b></span>
+  </footer>
+
+</section>
+
+</body>
+</html>
