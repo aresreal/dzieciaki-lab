@@ -448,11 +448,13 @@
     if (typeof stored.form[field.id] === 'string') field.value = stored.form[field.id];
   });
   if (!value('date')) document.getElementById('date').value = localToday();
-  var phraseId = Number(stored.phraseId);
-  if (!Number.isInteger(phraseId) || phraseId < 0 || phraseId >= phrases.length) {
+  var previousPhraseId = Number(stored.phraseId);
+  var hasPreviousPhrase = Number.isInteger(previousPhraseId) && previousPhraseId >= 0 && previousPhraseId < phrases.length;
+  var phraseId = Math.floor(Math.random() * phrases.length);
+  while (phrases.length > 1 && hasPreviousPhrase && phraseId === previousPhraseId) {
     phraseId = Math.floor(Math.random() * phrases.length);
-    PlanState.setPhraseId(phraseId);
   }
+  PlanState.setPhraseId(phraseId);
 
   fields.forEach(function (field) {
     field.addEventListener('input', function () {
