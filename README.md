@@ -5,10 +5,12 @@ Katalog kolorowych miniapek dla dzieci. Każda aplikacja ma własny folder i jes
 ## Dostępne projekty
 
 - [Kalkulator Six Seven](kalkulator-six-seven/)
+- [Planownia](generator-planow/)
 
 ## Struktura
 
 ```text
 index.html                 # strona główna
 kalkulator-six-seven/     # kalkulator
+generator-planow/         # generator planów dla dzieci
 ```

@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#ff7d50" />
+  <title>Planownia - generator planów</title>
+  <style>
+    :root { --ink:#30245c; --orange:#ff7d50; --yellow:#ffdb61; --mint:#65dbc7; --violet:#7a61ed; --paper:#fffdf8; --line:#ded3f2; }
+    * { box-sizing:border-box; }
+    body { margin:0; color:var(--ink); font-family:"Trebuchet MS","Arial Rounded MT Bold",system-ui,sans-serif; background:radial-gradient(circle at 8% 5%,#ffe489 0 78px,transparent 79px),radial-gradient(circle at 92% 9%,#a4eee1 0 102px,transparent 103px),linear-gradient(135deg,#fff2ec,#f1edff 56%,#eafff8); }
+    .shell { width:min(1180px,100%); margin:0 auto; padding:26px 16px 48px; }
+    .top { display:flex; align-items:center; gap:16px; margin-bottom:22px; }
+    .back { color:var(--ink); font-weight:900; text-decoration:none; }
+    .back:hover { text-decoration:underline; }
+    .brand { display:flex; align-items:center; gap:11px; font-size:1.35rem; font-weight:900; }
+    .logo { display:grid; place-items:center; width:44px; height:44px; border:3px solid var(--ink); border-radius:15px; background:var(--orange); box-shadow:4px 4px 0 var(--ink); font-size:1.55rem; }
+    .intro { margin:0 0 22px; max-width:690px; font-size:1.08rem; font-weight:700; }
+    .layout { display:grid; grid-template-columns:minmax(270px,390px) minmax(0,1fr); gap:22px; align-items:start; }
+    .controls { padding:19px; border:4px solid var(--ink); border-radius:28px; background:var(--paper); box-shadow:7px 8px 0 rgba(48,36,92,.15); }
+    .controls h1 { margin:0 0 4px; font-size:1.85rem; line-height:1; }
+    .hint { margin:0 0 17px; color:#685a8d; font-size:.87rem; font-weight:700; }
+    label { display:block; margin:13px 0 5px; font-size:.86rem; font-weight:900; }
+    input, select, textarea { width:100%; border:2px solid var(--ink); border-radius:12px; padding:9px 10px; color:var(--ink); background:#fff; font:inherit; font-size:.94rem; }
+    textarea { min-height:72px; resize:vertical; line-height:1.35; }
+    .two { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .section-label { margin-top:19px; padding-top:15px; border-top:2px dashed var(--line); font-size:1rem; font-weight:900; }
+    .buttons { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:17px; }
+    button { border:3px solid var(--ink); border-radius:14px; padding:10px; color:var(--ink); background:#fff; box-shadow:0 3px 0 var(--ink); font:inherit; font-weight:900; cursor:pointer; }
+    button:hover { background:#f5f1ff; } button:active { transform:translateY(3px); box-shadow:none; } button:focus-visible, input:focus-visible,select:focus-visible,textarea:focus-visible,a:focus-visible { outline:4px solid var(--mint); outline-offset:2px; }
+    .primary { color:#fff; background:var(--violet); }
+    .primary:hover { background:#6048d5; }
+    .print { background:var(--yellow); }
+    .wide { grid-column:1 / -1; }
+    .note { margin:14px 0 0; color:#63558a; font-size:.78rem; font-weight:700; }
+    .preview-wrap { min-width:0; }
+    .preview-label { margin:0 0 9px; font-size:.83rem; font-weight:900; letter-spacing:.08em; text-transform:uppercase; }
+    .plan { min-height:650px; padding:29px; border:4px solid var(--ink); border-radius:30px; background:var(--paper); box-shadow:8px 9px 0 rgba(48,36,92,.15); }
+    .plan-head { display:flex; justify-content:space-between; gap:14px; align-items:start; padding-bottom:17px; border-bottom:3px solid var(--ink); }
+    .eyebrow { margin:0 0 5px; color:var(--orange); font-size:.81rem; font-weight:900; letter-spacing:.1em; text-transform:uppercase; }
+    .plan h2 { margin:0; font-size:clamp(1.5rem,4vw,2.2rem); line-height:1; }
+    .date { padding:8px 10px; border-radius:12px; background:#eee9ff; font-size:.82rem; font-weight:900; text-align:right; }
+    .for { margin:14px 0 18px; font-size:.95rem; font-weight:900; }
+    .cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(235px,1fr)); gap:15px; }
+    .child-card { break-inside:avoid; padding:15px; border:3px solid var(--ink); border-radius:19px; background:#fff; }
+    .child-name { display:inline-block; margin:-29px 0 10px; padding:7px 11px; border:2px solid var(--ink); border-radius:12px; background:var(--yellow); box-shadow:2px 2px 0 var(--ink); font-weight:900; }
+    .block { margin-top:12px; padding:11px; border-radius:14px; background:#f2efff; }
+    .block:nth-child(2n) { background:#e9fbf7; } .block:nth-child(3n) { background:#fff3d9; }
+    .block h3 { margin:0 0 7px; font-size:.93rem; }
+    .task { display:flex; gap:8px; align-items:flex-start; margin:7px 0; font-size:.91rem; font-weight:700; }
+    .task input { appearance:none; flex:0 0 21px; width:21px; height:21px; margin:0; padding:0; border:2px solid var(--ink); border-radius:7px; cursor:pointer; }
+    .task input:checked { background:var(--mint); box-shadow:inset 0 0 0 4px #fff; }
+    .empty { padding:20px; border:3px dashed var(--line); border-radius:16px; color:#75669b; font-weight:700; text-align:center; }
+    .message { margin:22px 0 0; padding:16px 18px; border:3px solid var(--ink); border-radius:19px; background:var(--yellow); box-shadow:4px 4px 0 var(--ink); font-size:1.05rem; font-weight:900; text-align:center; }
+    .week { overflow-x:auto; margin-top:12px; }
+    table { width:100%; min-width:620px; border-collapse:separate; border-spacing:5px; }
+    th { padding:8px; border-radius:10px; background:#ece7ff; font-size:.82rem; } td { min-width:74px; padding:7px; border-radius:10px; background:#faf7ff; text-align:center; } td:first-child { min-width:160px; background:#fff3dc; font-size:.84rem; font-weight:900; text-align:left; }
+    .week-check { appearance:none; width:23px; height:23px; border:2px solid var(--ink); border-radius:7px; background:#fff; cursor:pointer; } .week-check:checked { background:var(--mint); box-shadow:inset 0 0 0 4px #fff; }
+    .footer { margin-top:17px; color:#63558a; font-size:.78rem; font-weight:700; text-align:center; }
+    @media (max-width:800px) { .layout { grid-template-columns:1fr; } .plan { padding:20px; } .top { margin-bottom:16px; } }
+    @media print { @page { size:A4; margin:10mm; } body { background:#fff; } .no-print,.controls,.top,.intro,.preview-label { display:none !important; } .shell { width:auto; padding:0; } .layout { display:block; } .plan { min-height:0; padding:0; border:0; border-radius:0; box-shadow:none; } .plan-head { padding-bottom:11px; } .cards { grid-template-columns:repeat(2,1fr); } .child-card,.block,.message { break-inside:avoid; } .message { box-shadow:none; } }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="top no-print"><a class="back" href="../">← Wszystkie zabawy</a><div class="brand"><span class="logo" aria-hidden="true">🗓️</span> Planownia</div></header>
+    <p class="intro no-print">Zamień codzienny chaos w mały, życzliwy plan. Jedna rzecz naraz, dużo odhaczania i zero presji na perfekcję.</p>
+    <div class="layout">
+      <section class="controls no-print" aria-label="Ustawienia planu">
+        <h1>Ułóż plan</h1><p class="hint">Zmiany zapisują się na tym urządzeniu. Możesz spokojnie odświeżyć stronę.</p>
+        <label for="names">Imię lub imiona dzieci</label><input id="names" value="Klara" placeholder="np. Klara, Franek" />
+        <div class="two"><div><label for="layout">Rodzaj planu</label><select id="layout"><option value="daily-separate">Dzienny - osobne kartki</option><option value="daily-together">Dzienny - wspólna kartka</option><option value="weekly">Tygodniowy</option></select></div><div><label for="season">Tryb</label><select id="season"><option value="school">Szkoła</option><option value="holiday">Wakacje</option></select></div></div>
+        <div class="two"><div><label for="date">Data</label><input id="date" type="date" /></div><div><label for="title">Tytuł</label><input id="title" value="Plan na dziś" /></div></div>
+        <p class="section-label">Zadania (jedno w wierszu)</p>
+        <label for="morning">Rano</label><textarea id="morning">Ubrać się
+Zjeść śniadanie
+Umyć zęby</textarea>
+        <label for="daytime" id="daytimeLabel">Po szkole</label><textarea id="daytime">Mała przekąska
+Odpoczynek
+Zadanie domowe</textarea>
+        <label for="evening">Wieczorem</label><textarea id="evening">Kolacja
+Prysznic
+Przygotować ubrania na jutro</textarea>
+        <label for="meTime">Coś dla mnie</label><textarea id="meTime">10 minut zabawy
+Wybrać książkę lub bajkę</textarea>
+        <div class="buttons"><button class="primary" id="newPlan" type="button">✨ Wylosuj nowe wsparcie</button><button class="print" id="printPlan" type="button">🖨️ Zapisz jako PDF</button><button class="wide" id="resetPlan" type="button">Wyczyść odhaczenia</button></div>
+        <p class="note">PDF otworzy okno drukowania. Wybierz tam „Zapisz jako PDF”.</p>
+      </section>
+      <section class="preview-wrap"><p class="preview-label no-print">Podgląd gotowy do druku</p><article class="plan" id="plan" aria-live="polite"></article></section>
+    </div>
+  </main>
+  <script>
+    (() => {
+      const storageKey = 'planownia-form-v1';
+      const checkKey = 'planownia-checks-v1';
+      const fields = ['names','layout','season','date','title','morning','daytime','evening','meTime'].map(id => document.getElementById(id));
+      const plan = document.getElementById('plan');
+      const phrases = [
+        'Odhaczam, gdy zrobione. Każdy dzień to nowy start.',
+        'Wakacje to też trochę rytmu. Zrobione - i biegnę się bawić!',
+        'Nie musi być idealnie. Wystarczy jedna rzecz naraz.',
+        'Mały krok też jest krokiem.', 'Najpierw zaczynam, potem zobaczę co dalej.',
+        'Mój mózg ma swój rytm. I to jest w porządku.', 'Dzisiaj nie ścigam się z nikim.',
+        'Nie wszystko naraz - tylko następna mała rzecz.', 'Przerwa też jest częścią planu.',
+        'Zrobione po swojemu też znaczy zrobione.', 'Mogę prosić o pomoc.',
+        'Jedno odhaczenie to już sukces.', 'Gdy utknę, biorę oddech i wracam.',
+        'Mogę zacząć od najłatwiejszego.', 'Mam prawo zmienić plan.',
+        'Mój wysiłek się liczy, nawet jeśli go nie widać.', 'Dzisiaj wystarczy tyle, ile dam radę.',
+        'Nie muszę pamiętać wszystkiego - plan pamięta ze mną.', 'Małe zwycięstwa robią wielką różnicę.',
+        'Najpierw zadanie, potem zasłużona frajda.', 'Wolniej nie znaczy gorzej.',
+        'Mogę wrócić do zadania po przerwie.', 'To jest mój plan, nie test.',
+        'Wybieram jedną rzecz i daję jej chwilę.', 'Pomyłka to informacja, nie katastrofa.',
+        'Moje tempo jest okej.', 'Potrafię zrobić następny mały krok.',
+        'Odhaczone! Mózg lubi widzieć postęp.', 'Nawet trudny dzień może mieć miły moment.',
+        'Dobrze, że próbuję.', 'Nie jestem spóźniony_a - jestem tutaj.',
+        'Plan jest po to, żeby pomagać, a nie straszyć.', 'Po zadaniu należy się chwila dumy.',
+        'Wystarczy zacząć od dwóch minut.', 'Dzisiaj wybieram łagodność dla siebie.'
+      ];
+      let phrase = phrases[Math.floor(Math.random() * phrases.length)];
+      let checks = JSON.parse(localStorage.getItem(checkKey) || '{}');
+
+      const escape = text => text.replace(/[&<>'"]/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#039;','"':'&quot;'}[char]));
+      const value = id => document.getElementById(id).value.trim();
+      const taskList = id => value(id).split('\n').map(x => x.trim()).filter(Boolean);
+      const getState = () => Object.fromEntries(fields.map(field => [field.id, field.value]));
+      const save = () => localStorage.setItem(storageKey, JSON.stringify(getState()));
+      const dayLabel = () => value('season') === 'holiday' ? 'W ciągu dnia' : 'Po szkole';
+      const displayDate = () => value('date') ? new Intl.DateTimeFormat('pl-PL',{weekday:'long',day:'numeric',month:'long',year:'numeric'}).format(new Date(value('date') + 'T12:00:00')) : 'bez daty';
+      const sections = () => [['Rano',taskList('morning')],[dayLabel(),taskList('daytime')],['Wieczorem',taskList('evening')],['Coś dla mnie',taskList('meTime')]];
+      function check(id, label) { const marked = checks[id] ? ' checked' : ''; return `<label class="task"><input type="checkbox" data-check="${escape(id)}"${marked}><span>${escape(label)}</span></label>`; }
+      function blocks(prefix) { return sections().map(([name,tasks], sectionIndex) => `<section class="block"><h3>${name}</h3>${tasks.length ? tasks.map((task,index) => check(`${prefix}-${sectionIndex}-${index}`,task)).join('') : '<p class="empty">Tu możesz dodać swoje zadanie.</p>'}</section>`).join(''); }
+      function daily(names, together) { if (together) return `<p class="for">Wspólny plan: ${names.map(escape).join(' i ')}</p><div class="cards"><section class="child-card"><span class="child-name">Razem 💛</span>${blocks(`${value('date')}-razem`)}</section></div>`; return `<div class="cards">${names.map((name,index) => `<section class="child-card"><span class="child-name">${escape(name)}</span>${blocks(`${value('date')}-${index}-${name}`)}</section>`).join('')}</div>`; }
+      function weekly(names) { const days = ['Pon','Wt','Śr','Czw','Pt','Sob','Nd']; const allTasks = sections().flatMap(([section,tasks]) => tasks.map(task => [section,task])); return `<p class="for">Plan dla: ${names.map(escape).join(' i ')}</p><div class="week"><table><thead><tr><th>Zadanie</th>${days.map(day => `<th>${day}</th>`).join('')}</tr></thead><tbody>${allTasks.length ? allTasks.map(([section,task],row) => `<tr><td><small>${section}</small><br>${escape(task)}</td>${days.map((day,column) => `<td><input class="week-check" aria-label="${escape(task)}, ${day}" type="checkbox" data-check="${escape(`${value('date')}-week-${row}-${column}`)}"${checks[`${value('date')}-week-${row}-${column}`] ? ' checked' : ''}></td>`).join('')}</tr>`).join('') : '<tr><td colspan="8" class="empty">Dodaj zadania po lewej stronie.</td></tr>'}</tbody></table></div>`; }
+      function render() { const names = value('names').split(',').map(x => x.trim()).filter(Boolean); const safeNames = names.length ? names : ['Moje dziecko']; const layout = value('layout'); document.getElementById('daytimeLabel').textContent = dayLabel(); const body = layout === 'weekly' ? weekly(safeNames) : daily(safeNames,layout === 'daily-together'); plan.innerHTML = `<header class="plan-head"><div><p class="eyebrow">${value('season') === 'holiday' ? 'Wakacyjny rytm' : 'Mały plan dnia'}</p><h2>${escape(value('title') || 'Mój plan')}</h2></div><span class="date">${displayDate()}</span></header>${body}<p class="message">${escape(phrase)}</p><p class="footer">Plan jest po to, by pomagać. Możesz go zmieniać, kiedy potrzebujesz.</p>`; }
+      function restore() { const saved = JSON.parse(localStorage.getItem(storageKey) || '{}'); fields.forEach(field => { if (saved[field.id] !== undefined) field.value = saved[field.id]; }); if (!value('date')) document.getElementById('date').value = new Date().toISOString().slice(0,10); }
+      fields.forEach(field => field.addEventListener('input', () => { save(); render(); }));
+      plan.addEventListener('change', event => { const box = event.target.closest('[data-check]'); if (!box) return; checks[box.dataset.check] = box.checked; localStorage.setItem(checkKey, JSON.stringify(checks)); });
+      document.getElementById('newPlan').addEventListener('click', () => { let next = phrase; while (phrases.length > 1 && next === phrase) next = phrases[Math.floor(Math.random() * phrases.length)]; phrase = next; render(); });
+      document.getElementById('printPlan').addEventListener('click', () => window.print());
+      document.getElementById('resetPlan').addEventListener('click', () => { checks = {}; localStorage.removeItem(checkKey); render(); });
+      restore(); render();
+    })();
+  </script>
+</body>
+</html>
